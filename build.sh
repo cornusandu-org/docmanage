@@ -1,0 +1,1 @@
+g++ ./src/main.cpp ./src/encrypt.cpp -o main -lssl -lcrypto -lncurses
