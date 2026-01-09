@@ -1,0 +1,4 @@
+[ ] Make key-entering not detect KEY_UP signals
+[ ] Move getline() logic into separate functioin
+[ ] Allow customisation of first 16 characters of passkey
+[ ] Show live hash preview of entered password
