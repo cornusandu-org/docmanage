@@ -466,9 +466,10 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         });
         name = std::format("{}/{}.md.enc", DOC_LOC, name);
 
+        mk_file(name);
         unsigned char a = write_file(name, " ", encryption_key, false);
         if (a) {
-            printf("Failed to create file %s\n", name);
+            printf("Failed to open file (W) %s: (%d)\n", name.c_str(), a);
             exit(4);
         }
 
@@ -486,8 +487,15 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         std::string orig_data = dat.b;
         std::ofstream _filename_f(filename);
         _filename_f << orig_data;
+
+        def_prog_mode();
+        endwin();
+
         std::string cmd = std::format("nano {}", filename);
         int ret = system(cmd.c_str());
+
+        reset_prog_mode();
+        refresh();
 
         std::ifstream in(filename, std::ios::binary);
         std::string data((std::istreambuf_iterator<char>(in)), {});
