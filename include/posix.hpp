@@ -1,0 +1,1 @@
+char is_running_as_root();

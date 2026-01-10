@@ -4,8 +4,20 @@
 #include "../include/encrypt.hpp"
 #include <locale.h>
 #include <cctype>
+#include "../include/pos_fs.hpp"
+#include "../include/posix.hpp"
+#include "../include/defin_.hpp"
+#include <format>
+#include <algorithm>
+
+
+std::string toStr(const std::vector<unsigned char>& data);
+std::vector<unsigned char> strToVec(std::string data);
+bool check_decrypt(std::vector<unsigned char> plaintext);
+
 
 constexpr int key_len = 32;
+std::string title = "";
 
 struct ExitStatus {
     int code;
@@ -15,6 +27,79 @@ struct ExitStatus {
 
 void add_trace(ExitStatus &status, std::string toAdd) {
     status.trace += toAdd + ";";
+}
+
+struct read_ret {unsigned char a; std::string b;};
+
+struct read_ret read_file(std::string path, std::vector<unsigned char> key) {
+    if (!fs::exists(path)) {
+        return {.a = 18, .b = ""};
+    }
+
+    std::fstream f(path, std::ios::binary | std::ios::in);  // Opens the file
+
+    if (!f) {
+        printf("write_file(): File failed to open: %s", path.c_str());
+        exit(3);  // File failed to open
+    }
+
+    f.seekg(0, std::ios::end);
+    std::string f_data(f.tellg(), '\0');
+    f.seekg(0, std::ios::beg);
+
+    f.read(f_data.data(), f_data.size());
+
+    std::vector<unsigned char> comp_enc_data = strToVec(f_data);
+
+    auto comp_real_data = Decrypt(comp_enc_data, key);
+    std::string real_data;
+
+    if (!check_decrypt(comp_real_data)) {
+        return {.a = 3, .b = ""};
+    }
+
+    real_data = toStr(comp_real_data);
+
+    return {.a = 0, .b = real_data};
+}
+
+unsigned char write_file(std::string path, std::string data, std::vector<unsigned char> key, bool append = true) {
+    if (!fs::exists(path)) {
+        return 18;
+    }
+    std::fstream f(path, std::ios::binary | std::ios::in | std::ios::out);  // Opens the file
+    if (!f) {
+        printf("write_file(): File failed to open: %s", path.c_str());
+        exit(3);  // File failed to open
+    }
+
+    std::vector<unsigned char> comp_data = strToVec(data);
+
+    f.seekg(0, std::ios::end);
+    std::string f_data(f.tellg(), '\0');
+    f.seekg(0, std::ios::beg);
+
+    f.read(f_data.data(), f_data.size());
+
+    if (!append) {f_data = "";}
+
+    std::vector<unsigned char> comp_enc_data = strToVec(f_data);
+
+    auto comp_real_data = Decrypt(comp_enc_data, key);
+    std::string real_data;
+    if (append) {
+        if (!check_decrypt(comp_real_data)) {
+            return 1;
+        }
+        real_data = toStr(comp_real_data);
+    } else {
+        real_data = "";
+    }
+    real_data += data;
+
+    f << toStr(Encrypt(strToVec(real_data), key));
+
+    return 0;
 }
 
 void _main(ExitStatus* status);
@@ -63,6 +148,14 @@ std::vector<unsigned char> strToVec(std::string data) {
     return std::vector<unsigned char>(data.begin(), data.end());
 }
 
+bool check_decrypt(std::vector<unsigned char> plaintext) {
+    if (plaintext.size() == 208 &&
+        std::all_of(plaintext.begin(), plaintext.end(), [](unsigned char c) { return c == 0; })) {
+        return false;
+    }
+    return true;
+}
+
 std::string random_alnum_32_openssl() {
     static constexpr char charset[] =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -92,9 +185,16 @@ int main() {
 
 void clearscreen() {
     clear();
-    printw("\t\t\t\t==== Docmanage ====\n\n");
+    printw("\t\t\t\t==== Docmanage ====\n");
+    if (*title.c_str()) printw("\t\t\t\t==== %s ====\n", title.c_str());
+    printw("\n");
+    
     refresh();
     return;
+}
+
+void set_title(std::string title) {
+    ::title = title;
 }
 
 std::string get_input(std::string prompt, void (*perIter)(std::string input) = [](std::string input){}) {
@@ -131,6 +231,23 @@ std::string get_input(std::string prompt, void (*perIter)(std::string input) = [
 }
 
 void _main(ExitStatus* status) {
+    #ifdef NONROOT_OK
+    goto debug_bypass_rootcheck;
+    #endif
+
+    if (!is_running_as_root()) {
+        add_trace(*status, "Running as non-root");
+        add_trace(*status, "Exiting (euid!=1/uid!=1)");
+        printw("Please run this program as root! (sudo)");
+        printw("\n\nPress any character to exit");
+        getch();
+        add_trace(*status, "Exiting");
+        status->code = 8;  // Not enough permissions
+        return;
+    }
+
+    debug_bypass_rootcheck:
+
     //printw("Hello, ncurses");
     //refresh();              // flush buffer to terminal
     //getch();                // wait for key
@@ -224,6 +341,7 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
             auto ch = getch();
             if (ch == KEY_DOWN && state == 0) {
                 state = 1;
+                add_trace(*status, "Edited key");
             } else if (ch == KEY_UP && state == 1) {
                 state = 0;
                 cursor = 0;
@@ -276,6 +394,110 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
 
     getch();
 
+
+    goto_file_view_1:
+    auto encryption_key = SHA512(strToVec(key));
+    if (!directory_exists(DOC_LOC)) {
+        mk_dir(DOC_LOC);
+        add_trace(*status, "Created doc directory");
+    }
+
+    set_title("File List");
+    clearscreen();
+
+    std::vector<std::string> files;
+
+    for (auto file : get_dirs(DOC_LOC)) {
+        if (!file.exists()) continue;
+        if (file.is_directory()) continue;
+        if (!file.path().has_filename()) continue;
+        if (file.is_symlink()) printf("Ignoring %s for security reasons (symlink)", file.path().string());
+        files.push_back(file.path().string());
+    }
+
+    files.push_back("Create file");
+
+    int cursor = 0;
+    std::string selection;
+    while (true) {
+        clearscreen();
+        int i = 0;
+        for (std::string file : files) {
+            if (i == cursor) attron(COLOR_PAIR(4));
+            printw("> %s\n", file.c_str());
+            if (i == cursor) attroff(COLOR_PAIR(4));
+            i++;
+        }
+        refresh();
+        int ch = getch();
+        if (ch == KEY_DOWN) {
+            cursor++;
+        } else if (ch == KEY_UP) cursor--;
+        if (cursor < 0) cursor = files.size() - 1;
+        if (cursor >= files.size()) cursor = 0;
+        if (ch == KEY_ENTER || ch == ' ' || ch == '\n') {
+            selection = files[cursor];
+            goto goto_file_view_2;
+        }
+    }
+
+    goto_file_view_2:
+
+    cursor = 0;
+
+    if (selection == "Create file") {
+        set_title("File Creation");
+        clearscreen();
+        printw("");
+        std::string name = get_input("File name: ", [](std::string input){
+            size_t i = 0;
+            if (!*input.c_str()) {
+                attron(COLOR_PAIR(4));
+                printw("|");
+                attroff(COLOR_PAIR(4));
+            }
+            for (char ch : input) {
+                if (i == input.length() - 1) attron(COLOR_PAIR(4));
+                printw("%c", ch);
+                if (i == input.length() - 1) attroff(COLOR_PAIR(4));
+                i++;
+            }
+            printw(".md.enc");
+        });
+        name = std::format("{}/{}.md.enc", DOC_LOC, name);
+
+        unsigned char a = write_file(name, " ", encryption_key, false);
+        if (a) {
+            printf("Failed to create file %s\n", name);
+            exit(4);
+        }
+
+        goto goto_file_view_1;
+    } else {
+        file_edit_1:
+        std::string filename = selection;
+        filename.erase(filename.size() - 4); // removes ".enc"
+        mk_file(filename);
+        auto dat = read_file(selection, encryption_key);
+        if (dat.a != 0) {
+            printf("Failed to decrypt file %s for writing\n", selection.c_str());
+            exit(151);
+        }
+        std::string orig_data = dat.b;
+        std::ofstream _filename_f(filename);
+        _filename_f << orig_data;
+        std::string cmd = std::format("nano {}", filename);
+        int ret = system(cmd.c_str());
+
+        std::ifstream in(filename, std::ios::binary);
+        std::string data((std::istreambuf_iterator<char>(in)), {});
+
+        write_file(selection, data, encryption_key, false);
+        rm_file(filename);
+
+        goto goto_file_view_1;
+    }
+
     status->code = 0;
     add_trace(*status, "Exited");
 }
@@ -294,3 +516,21 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
 // NOTE: 
 // NOTE: // Safe to use plaintext
 // NOTE: 
+
+
+
+// NOTE: #include <cstdlib>
+// NOTE: #include <iostream>
+// NOTE: 
+// NOTE: int main() {
+// NOTE:     int ret = system("nano example.txt");
+// NOTE: 
+// NOTE:     if (ret == 0) {
+// NOTE:         std::cout << "Nano exited successfully\n";
+// NOTE:     } else {
+// NOTE:         std::cout << "Nano exited with error\n";
+// NOTE:     }
+// NOTE: 
+// NOTE:     // Continue execution
+// NOTE:     std::cout << "Executing more code...\n";
+// NOTE: }

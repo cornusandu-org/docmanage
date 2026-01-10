@@ -30,8 +30,11 @@ std::vector<unsigned char> Encrypt(
     const std::vector<unsigned char>& plaintext,
     const std::vector<unsigned char>& key512)
 {
-    if (key512.size() != 64)
-        throw std::invalid_argument("Key must be exactly 512 bits (64 bytes)");
+    if (key512.size() != 64) {
+        printf("Key must be exactly 512 bits (64 bytes). Found size: %d bits (%d bytes)", key512.size() * 8, key512.size());
+        //throw std::invalid_argument("Key must be exactly 512 bits (64 bytes)");
+        exit(183);
+    }
 
     // Split key
     const unsigned char* aesKey = key512.data();
