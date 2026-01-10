@@ -67,7 +67,12 @@ unsigned char write_file(std::string path, std::string data, std::vector<unsigne
     if (!fs::exists(path)) {
         return 18;
     }
-    std::fstream f(path, std::ios::binary | std::ios::in | std::ios::out);  // Opens the file
+    std::ios::openmode mode = std::ios::binary | std::ios::in | std::ios::out;
+    if (!append) {
+        mode |= std::ios::trunc;
+    }
+    std::fstream f(path, mode);
+
     if (!f) {
         printf("write_file(): File failed to open: %s", path.c_str());
         exit(3);  // File failed to open
@@ -481,12 +486,14 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         mk_file(filename);
         auto dat = read_file(selection, encryption_key);
         if (dat.a != 0) {
-            printf("Failed to decrypt file %s for writing\n", selection.c_str());
+            printf("Failed to decrypt file %s for writing (%d)\n", selection.c_str(), dat.a);
             exit(151);
         }
         std::string orig_data = dat.b;
         std::ofstream _filename_f(filename);
         _filename_f << orig_data;
+        _filename_f.flush();
+        _filename_f.close();
 
         def_prog_mode();
         endwin();
