@@ -480,7 +480,42 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
 
         goto goto_file_view_1;
     } else {
-        file_edit_1:
+        int cursor_2 = 0;
+        std::vector<std::string> choices = {"Edit file", "Export file", "Redact file"};
+
+        std::string selection;
+        while (true) {
+            clearscreen();
+            int i = 0;
+            for (std::string choice : choices) {
+                if (i == cursor_2) attron(COLOR_PAIR(4));
+                printw("> %s\n", choice.c_str());
+                if (i == cursor_2) attroff(COLOR_PAIR(4));
+                i++;
+            }
+            refresh();
+            int ch = getch();
+            if (ch == KEY_DOWN) {
+                cursor_2++;
+            } else if (ch == KEY_UP) cursor_2--;
+            if (cursor_2 < 0) cursor_2 = choices.size() - 1;
+            if (cursor_2 >= choices.size()) cursor_2 = 0;
+            if (ch == KEY_ENTER || ch == ' ' || ch == '\n') {
+                selection = choices[cursor_2];
+                goto goto_file_view_2;
+            }
+        }
+
+        if (selection == "Edit file") {
+            goto goto_file_edit_1;
+        } else {
+            clearscreen();
+            printw("That feature is not ready yet. Press any character to return.\n");
+            getch()
+            goto goto_file_
+        }
+
+        goto_file_edit_1:
         std::string filename = selection;
         filename.erase(filename.size() - 4); // removes ".enc"
         mk_file(filename);
