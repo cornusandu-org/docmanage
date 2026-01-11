@@ -395,10 +395,10 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         add_trace(*status, "User-entered key");
     }
 
+    #ifdef _DISABLE_FIX_ISSUE_NO1
     clearscreen();
-
     getch();
-
+    #endif
 
     goto_file_view_1:
     auto encryption_key = SHA512(strToVec(key));
@@ -480,6 +480,7 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
 
         goto goto_file_view_1;
     } else {
+        std::string file = selection;
         int cursor_2 = 0;
         std::vector<std::string> choices = {"Edit file", "Export file", "Redact file"};
 
@@ -502,26 +503,65 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
             if (cursor_2 >= choices.size()) cursor_2 = 0;
             if (ch == KEY_ENTER || ch == ' ' || ch == '\n') {
                 selection = choices[cursor_2];
-                goto goto_file_view_2;
+                goto goto_file_edit_menu_1;
             }
         }
 
+        goto_file_edit_menu_1:
+
         if (selection == "Edit file") {
             goto goto_file_edit_1;
+        } else if (selection == "Export file") {
+            #ifdef EXPER_FEAT_EXPORT
+                set_title("Export file " + file);
+                clearscreen();
+                std::string export_location = "/root/" + get_input("Export location: ", [](std::string input) {
+                    if (input.empty()) {
+                        printw("/root/.md");
+                        return;
+                    };
+                    std::string input_most = input;
+                    if (!input_most.empty()) {input_most.pop_back();}
+                    printw("/root/%s", input_most.c_str());
+                    attron(COLOR_PAIR(4));
+                    printw("%c", input.back());
+                    attroff(COLOR_PAIR(4));
+                    printw(".md");
+                }) + ".md";
+                struct read_ret ret = read_file(file, encryption_key);
+                if (ret.a != 0) {
+                    clearscreen();
+                    printw("Failed to export file %s. Errno: %d\n", file.c_str(), ret.a);
+                }
+                std::string data = ret.b;
+                std::ofstream export_file = mk_file(export_location);
+                export_file << data;
+                export_file.flush(); export_file.close();
+                clearscreen();
+                printw("File successfully exported at '%s'. Press any key to return to menu.", export_location.c_str());
+                getch();
+                
+                goto goto_file_view_1;
+            #else
+                goto goto_feat_not_ready;
+            #endif
         } else {
+            goto_feat_not_ready:
             clearscreen();
             printw("That feature is not ready yet. Press any character to return.\n");
-            getch()
-            goto goto_file_
+            getch();
+            goto goto_file_view_1;
         }
 
+        goto goto_file_view_1;
+
         goto_file_edit_1:
-        std::string filename = selection;
+        std::string filename = file;
         filename.erase(filename.size() - 4); // removes ".enc"
         mk_file(filename);
-        auto dat = read_file(selection, encryption_key);
+        auto dat = read_file(file, encryption_key);
         if (dat.a != 0) {
-            printf("Failed to decrypt file %s for writing (%d)\n", selection.c_str(), dat.a);
+            printf("Failed to decrypt file %s for writing (%d)\n", file.c_str(), dat.a);
             exit(151);
         }
         std::string orig_data = dat.b;
@@ -542,7 +582,7 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         std::ifstream in(filename, std::ios::binary);
         std::string data((std::istreambuf_iterator<char>(in)), {});
 
-        write_file(selection, data, encryption_key, false);
+        write_file(file, data, encryption_key, false);
         rm_file(filename);
 
         goto goto_file_view_1;
