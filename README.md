@@ -7,4 +7,8 @@ Docmanage is an industry-grade markdown document management tool, featuring **sa
 
 ## Requirements
 * **Operating System:** Linux (any distribution; debain preffered)
-* **RAM:** 32MB for the app
+* **RAM:** 16MB for the app
+
+> [!TIP]
+> 
+> To run on Windows, please install on WSL 2, or on a Virtual Machine.
