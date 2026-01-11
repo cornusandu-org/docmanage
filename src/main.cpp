@@ -302,10 +302,16 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         printw("\n\n(%s)\n\n", toBase64(SHA512(strToVec(input))).c_str());
         for (char c : input) {
             if (!std::isalnum(c)) {
-                printw("All keys are purely alphanumeric characters! This is not the correct key!");
+                printw("All keys are purely alphanumeric characters! This is not the correct key!\n\n");
                 break;
             }
         }
+        #ifndef _DISABLE_FIX_ISSUE_NO2
+        printw("If this is your first time using the program, please press ENTER without typing anything to generate a key.\n");
+        attron(COLOR_PAIR(3));
+        printw("Please do not enter a custom key! Generate one first, if you haven't already!");
+        attroff(COLOR_PAIR(3));
+        #endif
     });
 
     if (!*key.c_str()) {
