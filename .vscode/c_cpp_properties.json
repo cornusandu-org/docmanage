@@ -1,11 +1,22 @@
 {
     "configurations": [
         {
-            "name": "Linux",
+            "name": "Linux Stable",
             "includePath": [
                 "${workspaceFolder}/**"
             ],
-            "defines": ["EXPER_FEAT_EXPORT"],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64"
+        },
+        {
+            "name": "Linux Experimental",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": ["EXPER_ENABLE_ALL_FEAT"],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c17",
             "cppStandard": "c++17",

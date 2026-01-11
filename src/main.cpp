@@ -551,10 +551,78 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
             #else
                 goto goto_feat_not_ready;
             #endif
+        } else if (selection == "Redact file") {
+            #ifdef EXPER_FEAT_REDACT
+            
+            set_title("Redact file " + file);
+
+            int offset = 0;
+            struct {int line; int ch;} line_cursor{.line = 0, .ch = 0};
+
+            struct read_ret ret = read_file(file, encryption_key);
+            if (ret.a != 0) { printw("[FAILED TO OPEN FILE: %d]\n\nPress any key to return.", ret.a); goto goto_file_view_1;}
+            std::string original_content = ret.b;
+
+            int height, width;
+            getmaxyx(stdscr, height, width);
+
+
+
+
+            int total_lines;
+            std::vector<std::string> per_line;
+            std::string buffer = "";
+
+            int line = 0, ch = 0, increment = 0;
+
+            while (true) {
+                if (original_content[increment] == '\n') {
+                    total_lines++;
+                    per_line.push_back(buffer);
+                    continue;
+                }
+                buffer += original_content[increment];
+            }
+
+
+
+
+            while (true) {
+                clearscreen();
+
+                int real_height = height - 1 - 1 - 2 - 1;  // -TITLE -SUBTITLE -TOTAL_PADDING -BOTTOM_LINE
+
+                int increment = offset;
+                for (int line = 0; line < real_height; line++) {
+                    for (int ch = 0; ch < width; ch++) {
+                        if (original_content[increment] == '\n') break;
+                        if (line_cursor.line == line && line_cursor.ch == ch) attron(COLOR_PAIR(4));
+                        printw("%c", original_content[increment]);
+                        if (line_cursor.line == line && line_cursor.ch == ch) attroff(COLOR_PAIR(4));
+                        increment++;
+                    }
+                    printw("\n");
+                    total_lines = line;
+                }
+
+                refresh();
+
+                int input = getch();
+
+                if (input == KEY_UP) {
+                    if (line_cursor.line > 0) line_cursor.line--;
+                } else if (input == KEY_DOWN) {
+                    if (line_cursor.line < )
+                }
+            }
+
+            #else
+            goto goto_feat_not_ready;
+            #endif
         } else {
             goto_feat_not_ready:
             clearscreen();
-            printw("That feature is not ready yet. Press any character to return.\n");
+            printw("That feature () is not ready yet. Press any character to return.\n");
             getch();
             goto goto_file_view_1;
         }
