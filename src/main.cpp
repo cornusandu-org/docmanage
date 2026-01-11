@@ -486,6 +486,7 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
 
         goto goto_file_view_1;
     } else {
+        set_title("File Action Menu");
         std::string file = selection;
         int cursor_2 = 0;
         std::vector<std::string> choices = {"Edit file", "Export file", "Redact file"};
@@ -538,6 +539,8 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
                 if (ret.a != 0) {
                     clearscreen();
                     printw("Failed to export file %s. Errno: %d\n", file.c_str(), ret.a);
+                    getch();
+                    goto goto_file_view_1;
                 }
                 std::string data = ret.b;
                 std::ofstream export_file = mk_file(export_location);
@@ -560,7 +563,7 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
             struct {int line; int ch;} line_cursor{.line = 0, .ch = 0};
 
             struct read_ret ret = read_file(file, encryption_key);
-            if (ret.a != 0) { printw("[FAILED TO OPEN FILE: %d]\n\nPress any key to return.", ret.a); goto goto_file_view_1;}
+            if (ret.a != 0) { printw("[FAILED TO OPEN FILE: %d]\n\nPress any key to return.", ret.a); getch(); goto goto_file_view_1;}
             std::string original_content = ret.b;
 
             int height, width;
@@ -569,22 +572,31 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
 
 
 
-            int total_lines;
+            int total_lines = 0;
             std::vector<std::string> per_line;
             std::string buffer = "";
 
-            int line = 0, ch = 0, increment = 0;
+            int increment = -1;
 
             while (true) {
+                increment++;
+                if (increment == original_content.length()) break;
                 if (original_content[increment] == '\n') {
                     total_lines++;
                     per_line.push_back(buffer);
+                    buffer = "";
                     continue;
                 }
                 buffer += original_content[increment];
             }
+            if (!buffer.empty()) {
+                per_line.push_back(buffer);
+                total_lines++;
+            }
 
 
+
+            char redact_state = 0;
 
 
             while (true) {
@@ -595,14 +607,18 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
                 int increment = offset;
                 for (int line = 0; line < real_height; line++) {
                     for (int ch = 0; ch < width; ch++) {
-                        if (original_content[increment] == '\n') break;
+                        if (increment >= original_content.size()) break;
+                        if (original_content[increment] == '\n') {
+                            increment++;
+                            break;
+                        };
                         if (line_cursor.line == line && line_cursor.ch == ch) attron(COLOR_PAIR(4));
                         printw("%c", original_content[increment]);
                         if (line_cursor.line == line && line_cursor.ch == ch) attroff(COLOR_PAIR(4));
                         increment++;
                     }
                     printw("\n");
-                    total_lines = line;
+                    //total_lines = line;
                 }
 
                 refresh();
@@ -612,8 +628,53 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
                 if (input == KEY_UP) {
                     if (line_cursor.line > 0) line_cursor.line--;
                 } else if (input == KEY_DOWN) {
-                    if (line_cursor.line < )
+                    if (line_cursor.line < per_line.size() - 1) line_cursor.line++;
+                } else if (input == KEY_LEFT) {
+                    if (line_cursor.ch > 0) line_cursor.ch--;
+                } else if (input == KEY_RIGHT) {
+                    if (line_cursor.ch < per_line[line_cursor.line].length() - 1) line_cursor.ch++;
+                } else if (input == KEY_BACKSPACE) {
+                    goto goto_redact_finish;
+                } else if (input == ' ') {
+                    redact_state = redact_state ? 0 : 1;
                 }
+
+                // TO MAKE SURE THE CURSOR IS NOT OUT OF BOUNDS
+                if (line_cursor.ch < per_line[line_cursor.line].length() - 1) line_cursor.ch++;         //  KEY_RIGHT
+                if (line_cursor.ch > 0) line_cursor.ch--;                                               //  KEY_LEFT
+
+                int cursorIncrement = 0;
+                int temp_increment = 0;
+                int temp_line = 0;
+                int temp_ch = 0;
+                while (true) {
+                    if (temp_increment == original_content.length()) break;
+                    if (original_content[temp_increment] == '\n') {
+                        temp_ch = 0;
+                        temp_line++;
+                    } else {
+                        temp_ch++;
+                    }
+                    if (temp_line == line_cursor.line && temp_ch == line_cursor.ch) {
+                        break;
+                    }
+                    temp_increment++;
+                }
+
+                if (redact_state) {
+                    original_content.replace(temp_increment+1, 1, "*");
+                }
+            }
+
+            goto_redact_finish:
+
+            unsigned char res = write_file(file, original_content, encryption_key, false);
+
+            if (res) {
+                clearscreen();
+                printw("Failed to save edits to %s (error code %d).\nPress any key to return.", file, res);
+                getch();
+                goto goto_file_view_1;
             }
 
             #else
@@ -622,7 +683,7 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         } else {
             goto_feat_not_ready:
             clearscreen();
-            printw("That feature () is not ready yet. Press any character to return.\n");
+            printw("That feature (%s) is not ready yet. Press any character to return.\n", selection.c_str());
             getch();
             goto goto_file_view_1;
         }
@@ -630,15 +691,16 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         goto goto_file_view_1;
 
         goto_file_edit_1:
+        set_title(std::format("File edit ({})", file));
         std::string filename = file;
         filename.erase(filename.size() - 4); // removes ".enc"
-        mk_file(filename);
         auto dat = read_file(file, encryption_key);
         if (dat.a != 0) {
-            printf("Failed to decrypt file %s for writing (%d)\n", file.c_str(), dat.a);
-            exit(151);
+            clearscreen();
+            printw("[FAILED TO OPEN FILE: %d]\n\nPress any key to return.", dat.a); getch(); goto goto_file_view_1;
         }
         std::string orig_data = dat.b;
+        mk_file(filename);
         std::ofstream _filename_f(filename);
         _filename_f << orig_data;
         _filename_f.flush();
