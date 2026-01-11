@@ -3,5 +3,5 @@
 [ * ] Allow customisation of first 16 characters of passkey
 [ * ] Show live hash preview of entered password
 [ * ] Fix file creation
-[   ] Allow file exporting
-[   ] Allow file redaction
+[ * ] Allow file exporting
+[ * ] Allow file redaction
