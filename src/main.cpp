@@ -422,7 +422,7 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         if (!file.path().has_filename()) continue;
         if (file.is_symlink()) printf("Ignoring %s for security reasons (symlink)", file.path().string());
         #if !defined(_DISABLE_FILE_PROTECTION_FILTERING) && !defined(_DISABLE_FILE_PROTECTIONS)
-        if (!check_root_owner_and_0600(file.path().c_str()))  printf("Ignoring %s for security reasons (non-protected)", file.path().string().c_str());
+        if (!check_root_owner_and_0600(file.path().c_str())) {printf("Ignoring %s for security reasons (non-protected)", file.path().string().c_str()); continue;};
         #endif
         files.push_back(file.path().string());
     }
