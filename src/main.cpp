@@ -404,11 +404,6 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         add_trace(*status, "User-entered key");
     }
 
-    #ifdef _DISABLE_FIX_ISSUE_NO1
-    clearscreen();
-    getch();
-    #endif
-
     goto_file_view_1:
     auto encryption_key = SHA512(strToVec(key));
     if (!directory_exists(DOC_LOC)) {
@@ -426,6 +421,9 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         if (file.is_directory()) continue;
         if (!file.path().has_filename()) continue;
         if (file.is_symlink()) printf("Ignoring %s for security reasons (symlink)", file.path().string());
+        #if !defined(_DISABLE_FILE_PROTECTION_FILTERING) && !defined(_DISABLE_FILE_PROTECTIONS)
+        if (!check_root_owner_and_0600(file.path().c_str()))  printf("Ignoring %s for security reasons (non-protected)", file.path().string().c_str());
+        #endif
         files.push_back(file.path().string());
     }
 
@@ -481,8 +479,10 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         name = std::format("{}/{}.md.enc", DOC_LOC, name);
 
         mk_file(name);
+        #ifndef _DISABLE_FILE_PROTECTIONS
         chown(name.c_str(), 0, 0);
         chmod(name.c_str(), S_IRUSR | S_IWUSR);
+        #endif
 
         unsigned char a = write_file(name, " ", encryption_key, false);
         if (a) {
@@ -525,41 +525,37 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         if (selection == "Edit file") {
             goto goto_file_edit_1;
         } else if (selection == "Export file") {
-            #ifdef EXPER_FEAT_EXPORT
-                set_title("Export file " + file);
+            set_title("Export file " + file);
+            clearscreen();
+            std::string export_location = "/root/" + get_input("Export location: ", [](std::string input) {
+                if (input.empty()) {
+                    printw("/root/.md");
+                    return;
+                };
+                std::string input_most = input;
+                if (!input_most.empty()) {input_most.pop_back();}
+                printw("/root/%s", input_most.c_str());
+                attron(COLOR_PAIR(4));
+                printw("%c", input.back());
+                attroff(COLOR_PAIR(4));
+                printw(".md");
+            }) + ".md";
+            struct read_ret ret = read_file(file, encryption_key);
+            if (ret.a != 0) {
                 clearscreen();
-                std::string export_location = "/root/" + get_input("Export location: ", [](std::string input) {
-                    if (input.empty()) {
-                        printw("/root/.md");
-                        return;
-                    };
-                    std::string input_most = input;
-                    if (!input_most.empty()) {input_most.pop_back();}
-                    printw("/root/%s", input_most.c_str());
-                    attron(COLOR_PAIR(4));
-                    printw("%c", input.back());
-                    attroff(COLOR_PAIR(4));
-                    printw(".md");
-                }) + ".md";
-                struct read_ret ret = read_file(file, encryption_key);
-                if (ret.a != 0) {
-                    clearscreen();
-                    printw("Failed to export file %s. Errno: %d\n", file.c_str(), ret.a);
-                    getch();
-                    goto goto_file_view_1;
-                }
-                std::string data = ret.b;
-                std::ofstream export_file = mk_file(export_location);
-                export_file << data;
-                export_file.flush(); export_file.close();
-                clearscreen();
-                printw("File successfully exported at '%s'. Press any key to return to menu.", export_location.c_str());
+                printw("Failed to export file %s. Errno: %d\n", file.c_str(), ret.a);
                 getch();
-                
                 goto goto_file_view_1;
-            #else
-                goto goto_feat_not_ready;
-            #endif
+            }
+            std::string data = ret.b;
+            std::ofstream export_file = mk_file(export_location);
+            export_file << data;
+            export_file.flush(); export_file.close();
+            clearscreen();
+            printw("File successfully exported at '%s'. Press any key to return to menu.", export_location.c_str());
+            getch();
+            
+            goto goto_file_view_1;
         } else if (selection == "Redact file") {
             #ifdef EXPER_FEAT_REDACT
             
