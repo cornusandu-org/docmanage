@@ -1,17 +1,20 @@
-#include <ncurses.h>
 #include <string>
-#include <openssl/rand.h>
-#include "../include/encrypt.hpp"
 #include <locale.h>
 #include <cctype>
-#include "../include/pos_fs.hpp"
-#include "../include/posix.hpp"
-#include "../include/defin_.hpp"
 #include <format>
 #include <algorithm>
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include "../include/encrypt.hpp"
+#include "../include/pos_fs.hpp"
+#include "../include/posix.hpp"
+#include "../include/defin_.hpp"
+
+#include <ncurses.h>
+#include <openssl/rand.h>
 
 
 std::string toStr(const std::vector<unsigned char>& data);

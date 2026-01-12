@@ -1,9 +1,10 @@
-#include <openssl/evp.h>
-#include <openssl/sha.h>
-#include <openssl/rand.h>
 #include <vector>
 #include <stdexcept>
 #include <cstring>
+
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+#include <openssl/rand.h>
 
 std::vector<unsigned char> SHA512(const std::vector<unsigned char>& data);
 std::vector<unsigned char> Encrypt(

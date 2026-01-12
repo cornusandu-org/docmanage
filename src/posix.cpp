@@ -1,7 +1,9 @@
-#include <unistd.h>
-#include <sys/stat.h>
 #include <cerrno>
 #include <cstdio>
+
+#include <unistd.h>
+#include <sys/stat.h>
+
 #include "../include/posix.hpp"
 
 char is_running_as_root() {
