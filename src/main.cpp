@@ -9,6 +9,9 @@
 #include "../include/defin_.hpp"
 #include <format>
 #include <algorithm>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 
 std::string toStr(const std::vector<unsigned char>& data);
@@ -478,6 +481,9 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
         name = std::format("{}/{}.md.enc", DOC_LOC, name);
 
         mk_file(name);
+        chown(name.c_str(), 0, 0);
+        chmod(name.c_str(), S_IRUSR | S_IWUSR);
+
         unsigned char a = write_file(name, " ", encryption_key, false);
         if (a) {
             printf("Failed to open file (W) %s: (%d)\n", name.c_str(), a);
