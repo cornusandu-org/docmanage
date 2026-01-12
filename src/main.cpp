@@ -622,41 +622,67 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
             while (true) {
                 clearscreen();
 
-                if (line_cursor.ch >= per_line[line_cursor.line].length()) line_cursor.ch = per_line[line_cursor.line].length() - 1;
-
-                int real_height = height - 1 - 1 - 2 - 1;  // -TITLE -SUBTITLE -TOTAL_PADDING -BOTTOM_LINE
-
+                // MINIMAL: avoid -1 on empty lines (prevents later replace() issues too)
+                {
+                    int len = (int)per_line[line_cursor.line].size();
+                    if (len == 0) line_cursor.ch = 0;
+                    else if (line_cursor.ch >= len) line_cursor.ch = len - 1;
+                }
+            
+                int real_height = height - 1 - 1 - 2 - 1;
+            
+                // MINIMAL: keep offset in sync BOTH directions
                 if (line_cursor.line >= offset + real_height) offset++;
+                if (line_cursor.line < offset) offset--;
+            
+                if (offset < 0) offset = 0;
+            
+                // MINIMAL: seek increment to the start of the "offset"th line in original_content
                 int increment = 0;
+                int skipped = 0;
+                while (increment < (int)original_content.size() && skipped < offset) {
+                    if (original_content[increment] == '\n') skipped++;
+                    increment++;
+                }
+            
                 for (int line = 0; line < real_height; line++) {
+                    int doc_line = line + offset;
+                
+                    // MINIMAL: bounds guard so per_line[doc_line] can't crash near EOF
+                    if (doc_line >= (int)per_line.size()) { printw("\n"); continue; }
+                
                     for (int ch = 0; ch < width; ch++) {
-                        if (increment >= original_content.size()) break;
+                        if (increment >= (int)original_content.size()) break;
+                    
                         if (original_content[increment] == '\n') {
                             increment++;
                             break;
-                        };
-                        if (ch >= per_line[line].length()) {
+                        }
+                    
+                        if (ch >= (int)per_line[doc_line].length()) {
+                            // (you can also just break; here, but leaving your behavior)
                             increment++;
                             break;
                         }
-                        if (line < offset) {
-                            increment++;
-                            continue;
-                        }
+                    
                         unsigned char color_pair = redact_state ? 5 : 4;
-                        if (line_cursor.line == line && line_cursor.ch == ch) attron(COLOR_PAIR(color_pair));
-                        if (per_line[line_cursor.line].empty()) attron(COLOR_PAIR(color_pair));
-                        if (per_line[line_cursor.line].empty()) printw(".");
+                    
+                        // MINIMAL: compare cursor to document line, not viewport line
+                        if (line_cursor.line == doc_line && line_cursor.ch == ch) attron(COLOR_PAIR(color_pair));
+                    
+                        // MINIMAL: empty-line logic should apply to the line being drawn
+                        if (per_line[doc_line].empty()) attron(COLOR_PAIR(color_pair));
+                        if (per_line[doc_line].empty()) printw(".");
                         printw("%c", original_content[increment]);
-                        if (line_cursor.line == line && line_cursor.ch == ch) attroff(COLOR_PAIR(color_pair));
-                        if (per_line[line_cursor.line].empty()) attroff(COLOR_PAIR(color_pair));
+                        if (line_cursor.line == doc_line && line_cursor.ch == ch) attroff(COLOR_PAIR(color_pair));
+                        if (per_line[doc_line].empty()) attroff(COLOR_PAIR(color_pair));
+                    
                         increment++;
                     }
                     printw("\n");
-                    //total_lines = line;
                 }
                 attron(COLOR_PAIR(3));
-                printw("Press SPACE to toggle on/off editing mode.\nPress BACKSPACE to exit.");
+                printw("Press SPACE to toggle on/off editing mode.\nPress BACKSPACE to exit, or ENTER to save changes.");
                 attroff(COLOR_PAIR(3));
 
                 refresh();
@@ -671,8 +697,10 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
                     if (line_cursor.ch > 0) line_cursor.ch--;
                 } else if (input == KEY_RIGHT) {
                     if (line_cursor.ch < per_line[line_cursor.line].length() - 1) line_cursor.ch++;
-                } else if (input == KEY_BACKSPACE) {
+                } else if (input == '\n' || input==KEY_ENTER) {
                     goto goto_redact_finish;
+                } else if (input == KEY_BACKSPACE) {
+                    goto goto_file_view_1;
                 } else if (input == ' ') {
                     redact_state = redact_state ? 0 : 1;
                 }
