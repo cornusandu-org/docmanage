@@ -129,6 +129,7 @@ void setup() {
     init_pair(2, COLOR_RED, COLOR_RED);
     init_pair(3, COLOR_RED, -1);  // Red on black
     init_pair(4, -1, COLOR_WHITE);  // Inverse
+    init_pair(5, -1, COLOR_RED);  // Black on red
 }
 
 void on_end() {
@@ -571,6 +572,20 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
             if (ret.a != 0) { printw("[FAILED TO OPEN FILE: %d]\n\nPress any key to return.", ret.a); getch(); goto goto_file_view_1;}
             std::string original_content = ret.b;
 
+            void (*replace_double_newlines)(std::string&) = [](std::string& content){
+                std::string from = "\n\n";
+                std::string to   = "\n \n";
+            
+                size_t pos = 0;
+                while ((pos = content.find(from, pos)) != std::string::npos) {
+                    content.replace(pos, from.length(), to);
+                    pos += to.length();  // advance to avoid infinite loop
+                }
+            };
+
+            replace_double_newlines(original_content);
+
+
             int height, width;
             getmaxyx(stdscr, height, width);
 
@@ -607,9 +622,12 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
             while (true) {
                 clearscreen();
 
+                if (line_cursor.ch >= per_line[line_cursor.line].length()) line_cursor.ch = per_line[line_cursor.line].length() - 1;
+
                 int real_height = height - 1 - 1 - 2 - 1;  // -TITLE -SUBTITLE -TOTAL_PADDING -BOTTOM_LINE
 
-                int increment = offset;
+                if (line_cursor.line >= offset + real_height) offset++;
+                int increment = 0;
                 for (int line = 0; line < real_height; line++) {
                     for (int ch = 0; ch < width; ch++) {
                         if (increment >= original_content.size()) break;
@@ -617,14 +635,29 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
                             increment++;
                             break;
                         };
-                        if (line_cursor.line == line && line_cursor.ch == ch) attron(COLOR_PAIR(4));
+                        if (ch >= per_line[line].length()) {
+                            increment++;
+                            break;
+                        }
+                        if (line < offset) {
+                            increment++;
+                            continue;
+                        }
+                        unsigned char color_pair = redact_state ? 5 : 4;
+                        if (line_cursor.line == line && line_cursor.ch == ch) attron(COLOR_PAIR(color_pair));
+                        if (per_line[line_cursor.line].empty()) attron(COLOR_PAIR(color_pair));
+                        if (per_line[line_cursor.line].empty()) printw(".");
                         printw("%c", original_content[increment]);
-                        if (line_cursor.line == line && line_cursor.ch == ch) attroff(COLOR_PAIR(4));
+                        if (line_cursor.line == line && line_cursor.ch == ch) attroff(COLOR_PAIR(color_pair));
+                        if (per_line[line_cursor.line].empty()) attroff(COLOR_PAIR(color_pair));
                         increment++;
                     }
                     printw("\n");
                     //total_lines = line;
                 }
+                attron(COLOR_PAIR(3));
+                printw("Press SPACE to toggle on/off editing mode.\nPress BACKSPACE to exit.");
+                attroff(COLOR_PAIR(3));
 
                 refresh();
 
@@ -645,8 +678,10 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
                 }
 
                 // TO MAKE SURE THE CURSOR IS NOT OUT OF BOUNDS
-                if (line_cursor.ch < per_line[line_cursor.line].length() - 1) line_cursor.ch++;         //  KEY_RIGHT
-                if (line_cursor.ch > 0) line_cursor.ch--;                                               //  KEY_LEFT
+                //if (line_cursor.ch < per_line[line_cursor.line].length() - 1) line_cursor.ch++;         //  KEY_RIGHT
+                //if (line_cursor.ch > 0) line_cursor.ch--;                                               //  KEY_LEFT
+
+                if (line_cursor.ch >= per_line[line_cursor.line].length()) line_cursor.ch = per_line[line_cursor.line].length() - 1;
 
                 int cursorIncrement = 0;
                 int temp_increment = 0;
