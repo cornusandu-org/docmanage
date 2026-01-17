@@ -2,14 +2,16 @@
 **Article 0.** Notions
 (1) The "Project Owner" is the GitHub user at https://github.com/cornusandu-org
 
-(2) "Contributor" means any individual or entity submitting a Contribution.
+(2) "Project" means the "docmanage" repository.
 
-(3) "Contribution" means any original work of authorship submitted to the Project.
+(3) "Contributor" means any individual or entity submitting a Contribution.
+
+(4) "Contribution" means any original work of authorship submitted to the Project.
 
 **Article 1.** Transfer of rights
 
 (1) The Contributor hereby irrevocably assigns to the Project Owner all rights, title, and interest, including copyright, in and to the Contribution.
->	(a) This assignment applies regardless of whether the Contribution is accepted, merged, or otherwise incorporated into the Project.
+>	(a) This assignment applies only if the Contribution is accepted, merged, or otherwise incorporated into the Project.
 
 **Article 2.** Added rights
 
