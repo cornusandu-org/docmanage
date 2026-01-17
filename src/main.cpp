@@ -730,7 +730,7 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
                 }
 
                 if (redact_state) {
-                    original_content.replace(temp_increment+1, 1, "*");
+                    original_content.replace(temp_increment+1, 1, "^");
                 }
             }
 
