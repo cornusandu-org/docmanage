@@ -1,4 +1,4 @@
-# Title
+# [PR Title] -- [Really Short Description]
 ## Overview
 This pull request [...].  <!-- What is the PR? -->
 It:
@@ -9,6 +9,9 @@ It:
 ## Description
 <!-- Long-form description of the PR -->
 This pull request fixes issue A by ..., makes the code look cleaner by doing ..., [...].
+
+## Relevant information and sources
+* [...]
 
 ## Consent
 - [ ] I have read and agree to the Contributor License Agreement (CLA.md)
