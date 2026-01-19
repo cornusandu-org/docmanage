@@ -38,7 +38,8 @@ To see all available actions for a file, select it using the arrow keys, and pre
 > [!TIP]
 > 
 > To run on Windows, please install on WSL 2, or on a Virtual Machine.
+
 <br>
 
-<p align="middle">© 2025–2026 cornusandu-org. Licensed under the GNU AGPL v3.0.</p>
+<p align="middle">© 2025–2026 cornusandu-org, licensed under the <b>docmanage License</b>.</p>
 
