@@ -11,9 +11,11 @@
 
 (4) Commerical use is either:
 
-	(a) The use of a legal entity with the goal of obtaining profits
-	(b) The use of a for-profit company with the goal of obtaining profits
-	(c) Internal use of a for-profit company 
+&ensp; (a) The use of a legal entity with the goal of obtaining profits
+
+&ensp; (b) The use of a for-profit company with the goal of obtaining profits
+
+&ensp; (c) Internal use of a for-profit company 
 
 (5) Intent to contribute is defined as whether changes are contributed to The Project via Pull Request either within 4 months of the first modification, or within 14 days of the last substantial modification.
 
