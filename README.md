@@ -41,5 +41,5 @@ To see all available actions for a file, select it using the arrow keys, and pre
 
 <br>
 
-<p align="middle">© 2025–2026 cornusandu-org, Licensed under the <b>docmanage License</b>.</p>
+<p align="middle">© 2025–2026 cornusandu, Licensed under the <b>docmanage License</b>.</p>
 
