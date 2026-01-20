@@ -561,8 +561,6 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
 			
 			goto goto_file_view_1;
 		} else if (selection == "Redact file") {
-			#ifdef EXPER_FEAT_REDACT
-			
 			set_title("Redact file " + file);
 
 			int offset = 0;
@@ -762,10 +760,6 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
 				getch();
 				goto goto_file_view_1;
 			}
-
-			#else
-			goto goto_feat_not_ready;
-			#endif
 		} else {
 			goto_feat_not_ready:
 			clearscreen();
