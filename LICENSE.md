@@ -73,3 +73,15 @@
 (3) Violation of Chapter III, Article 8, repeated or not
 
 (4) Infringing on any applicable law, using the copyrighted works / The Project in the process, either directly or indirectly (where a connection can still clearly be made between The Project and the infringement of law)
+
+**Article 12.** After The License is terminated, the Licensee may:
+
+(1) use the Project's binaries for their intended use
+
+(2) redistribute the Project's binaries, the Project's source code or other copyrighted works unmodified, as per Chapter III, Article 6, as long as The Licensee explicitly states the original author (The Licensor) and the original project (The Project)
+
+**Article 13.** After The License is terminated, the Licensee may not:
+
+(1) redistribute the Project's binaries, source code or other copyrighted works that have been altered or modified
+
+(2) keep any derived work for longer than 16 days
