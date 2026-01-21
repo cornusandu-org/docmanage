@@ -1,4 +1,8 @@
-# docmanage
+<img src="assets/DocManage Light.png#gh-light-mode-only" alt="DocManage (light)" width="820">
+<img src="assets/DocManage Dark.png#gh-dark-mode-only" alt="DocManage (dark)" width="820">
+<br>
+
+
 Docmanage is an open-source, industrial-grade commandline tool that allows managing classified/sensitive documents, offering 256-bit security.
 
 ## Usage
