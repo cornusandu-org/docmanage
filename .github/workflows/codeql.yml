@@ -91,8 +91,8 @@ jobs:
         sudo apt install -y build-essential
         chmod +x ./deps
         ./deps
-        chmod +x ./build
-        ./build
+        chmod +x ./build.sh
+        ./build.sh
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
