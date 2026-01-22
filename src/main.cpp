@@ -84,8 +84,6 @@ unsigned char write_file(std::string path, std::string data, std::vector<unsigne
 		exit(3);  // File failed to open
 	}
 
-	std::vector<unsigned char> comp_data = strToVec(data);
-
 	f.seekg(0, std::ios::end);
 	std::string f_data(f.tellg(), '\0');
 	f.seekg(0, std::ios::beg);
