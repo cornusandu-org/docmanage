@@ -37,7 +37,7 @@ void add_trace(ExitStatus &status, std::string toAdd) {
 
 struct read_ret {unsigned char a; std::string b;};
 
-struct read_ret read_file(std::string path, std::vector<unsigned char> key) {
+struct read_ret read_file(std::string path, const std::vector<unsigned char> &key) {
 	if (!fs::exists(path)) {
 		return {.a = 18, .b = ""};
 	}
@@ -69,7 +69,7 @@ struct read_ret read_file(std::string path, std::vector<unsigned char> key) {
 	return {.a = 0, .b = real_data};
 }
 
-unsigned char write_file(std::string path, std::string data, std::vector<unsigned char> key, bool append = true) {
+unsigned char write_file(std::string path, std::string data, const std::vector<unsigned char> &key, bool append = true) {
 	if (!fs::exists(path)) {
 		return 18;
 	}
@@ -402,7 +402,6 @@ When that happens, store it in a root-only file, or on a piece of paper -- do NO
 			goto get_key_1;
 		}
 
-		idk_do_smth:
 		add_trace(*status, "User-entered key");
 	}
 
