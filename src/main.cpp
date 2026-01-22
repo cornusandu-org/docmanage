@@ -31,7 +31,7 @@ struct ExitStatus {
 	std::string trace = "";
 };
 
-void add_trace(ExitStatus &status, std::string toAdd) {
+void add_trace(ExitStatus &status, const std::string &toAdd) {
 	status.trace += toAdd + ";";
 }
 
@@ -69,7 +69,7 @@ struct read_ret read_file(std::string path, const std::vector<unsigned char> &ke
 	return {.a = 0, .b = real_data};
 }
 
-unsigned char write_file(std::string path, std::string data, const std::vector<unsigned char> &key, bool append = true) {
+unsigned char write_file(const std::string &path, const std::string &data, const std::vector<unsigned char> &key, bool append = true) {
 	if (!fs::exists(path)) {
 		return 18;
 	}
@@ -203,7 +203,7 @@ void clearscreen() {
 	return;
 }
 
-void set_title(std::string title) {
+void set_title(const std::string &title) {
 	::title = title;
 }
 
