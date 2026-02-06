@@ -1,5 +1,7 @@
 # docmanage License
 
+By downloading, or otherwise creating a copy of any assets covered by this License, the Licensee automatically agrees to the legally-binding license and its terms.
+
 ## Chapter 0. Definitions
 **Article 0.** Definitions
 
@@ -17,7 +19,11 @@
 
 &ensp; (c) Internal use of a for-profit company 
 
-(5) Intent to contribute is defined as whether changes are contributed to The Project via Pull Request either within 4 months of the first modification, or within 14 days of the last substantial modification.
+(5) Intent to contribute is defined as whether changes are contributed to The Project via Pull Request either (a) within 4 months of the first modification, or (b) within 14 days of the last substantial modification. If the Pull Request is rejected, this definition shall apply anew following the Licensee's next substantial modification submitted after such rejection.
+
+(6) A substantial modification is a modification that materially affects functionality, behavior, architecture, performance, or data processing, excluding formatting changes, comments, documentation-only changes, or trivial refactoring.
+
+(7) Expanding upon The Project is defined as performing one or more substantial modifications to The Project, as defined in Chapter 0, Article 0(6).
 
 ## Chapter I. Rights of Non-Commercial Use
 **Article 1.** The Licensee may use the source code of the project for:
@@ -28,7 +34,7 @@
 
 **Article 2.** The Licensee may use the project's binaries:
 
-(1) To link against them, either statically or dynamically, as long as the derived work / the rest of the project linking against said binaries is also licensed under this license
+(1) To link against them, either statically or dynamically, as long as the modified or derived work / the rest of the project linking against said binaries is also licensed under this license
 
 (2) For their intended use
 
@@ -63,8 +69,10 @@
 
 **Article 10.** The Project Owner may not be held liable for any damages caused directly or indirectly by copyrighted works or The Project.
 
+**Article 11.** The licensee understands that the Project Owner is not expected to document, be liable, or be responsible for intentional or accidental misuse of the program.
+
 ## Chapter V. EOC (End of Contract)
-**Article 11.** The License to use copyrighted works granted upon this Agreement is immediately terminated upon:
+**Article 12.** The License to use copyrighted works granted upon this Agreement is immediately terminated upon:
 
 (1) Repeated violation of its terms
 
@@ -74,14 +82,14 @@
 
 (4) Infringing on any applicable law, using the copyrighted works / The Project in the process, either directly or indirectly (where a connection can still clearly be made between The Project and the infringement of law)
 
-**Article 12.** After The License is terminated, the Licensee may:
+**Article 13.** After The License is terminated, the Licensee may:
 
-(1) use the Project's binaries for their intended use
+(1) Use the Project's binaries for their intended use
 
-(2) redistribute the Project's binaries, the Project's source code or other copyrighted works unmodified, as per Chapter III, Article 6, as long as The Licensee explicitly states the original author (The Licensor) and the original project (The Project)
+(2) Redistribute the Project's binaries, the Project's source code or other copyrighted works unmodified, as per Chapter III, Article 6, as long as The Licensee explicitly states the original author (The Licensor) and the original project (The Project)
 
-**Article 13.** After The License is terminated, the Licensee may not:
+**Article 14.** After The License is terminated, the Licensee may not:
 
-(1) redistribute the Project's binaries, source code or other copyrighted works that have been altered or modified
+(1) Redistribute the Project's binaries, source code or other copyrighted works that have been altered or modified
 
-(2) keep any derived work for longer than 16 days
+(2) Keep any modified or derivated work for longer than 16 days
