@@ -31,7 +31,7 @@ Afterwards, you will see a menu listing all available files. To create one, sele
 
 To see all available actions for a file, select it using the arrow keys, and press ENTER. The menu will show:
 * **Edit file**: Lets you edit the file using `nano`
-* **Export file**: Exports an unredacted version of the file
+* **Export file**: Exports a decrypted version of the file
 * **Redact file**: Safely and securely redact areas of the file
 
 ## Requirements
